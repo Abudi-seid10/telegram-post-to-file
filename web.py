@@ -1,4 +1,3 @@
-from ctypes.wintypes import PINT
 import requests  # type: ignore
 from bs4 import BeautifulSoup  # type: ignore
 import csv
@@ -6,7 +5,7 @@ import cssutils # type: ignore
 
 # https://t.me/tikvahethiopia/74220
 
-post_no = "74202"
+post_no = "74176"
 channel = 'tikvahethiopia'
 productslist = []
 
@@ -33,18 +32,21 @@ def get_data():
 
     if len(for_img_vid) > 0:
         for item in for_img_vid:
-            img = item['href']
-            img_list.append(img)
-        img_list = ', '.join(img_list)
+            img = item['style']
+            style = cssutils.parseStyle(img)
+            imglist = style['background-image']
+            imglist = imglist.replace('url(', '').replace(')', '')
+            img_list.append(imglist)
+        img_list = ', \n'.join(img_list)
     else:
         img_list = 'No image'
 
 
     if len(vid_link) > 0:
         for item in vid_link:
-            vid = item['href']
+            vid = item['src']
             vid_list.append(vid)
-        vid_list = ', '.join(vid_list)
+        vid_list = ', \n'.join(vid_list)
     else:
         vid_list = 'No video'
 
@@ -53,8 +55,7 @@ def get_data():
 
     print()
 
-    tittle1 = content.get_text('\n').split('\n')[1]  # type: ignore
-
+    
     if title.find('#') != -1:
         n = title.find('#')
         tag = title[n:]
@@ -70,12 +71,25 @@ def get_data():
         else:
             tag = 'No tag'
 
+    if tag != 'No tag':
+        tittle1 = content.get_text('\n').split('\n')[1]
+    else:
+        tittle1 = content.get_text('\n').split('\n')[0]
+
+    posted_on = soup.find('time', class_='datetime')
+    posted_on = posted_on.get_text('\n').join(' \n') # type: ignore
+    views_no = soup.find('span', class_='tgme_widget_message_views')
+    views_no = views_no.get_text('\n').join(' \n')  # type: ignore
+    
+
     product = {
         'TAG': tag,
         'title': tittle1,
         'content': content.get_text('\n'),  # type: ignore
         'link': img_list,
         'vid': vid_list,
+        'posted_on': posted_on,
+        'views': views_no,
     }
 
     productslist.append(product)
@@ -83,8 +97,8 @@ def get_data():
 
 
 def output(productslist):
-    with open('output.txt', 'w') as csvfile:
-        fieldnames = ['TAG', 'title', 'content', 'link', 'vid']
+    with open('output.csv', 'a') as csvfile:
+        fieldnames = ['TAG', 'title', 'content', 'link', 'vid', 'posted_on', 'views']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(productslist)
