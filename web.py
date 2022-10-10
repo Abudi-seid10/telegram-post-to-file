@@ -97,7 +97,7 @@ def get_data():
 
 
 def output(productslist):
-    with open('output.csv', 'a') as csvfile:
+    with open('output.txt', 'a') as csvfile:
         fieldnames = ['TAG', 'title', 'content', 'link', 'vid', 'posted_on', 'views']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
