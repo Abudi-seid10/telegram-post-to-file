@@ -1,10 +1,12 @@
+from ctypes.wintypes import PINT
 import requests  # type: ignore
 from bs4 import BeautifulSoup  # type: ignore
 import csv
+import cssutils # type: ignore
 
-# https://t.me/tikvahethiopia/74224
+# https://t.me/tikvahethiopia/74220
 
-post_no = "74224"
+post_no = "74202"
 channel = 'tikvahethiopia'
 productslist = []
 
@@ -12,11 +14,13 @@ productslist = []
 def get_data():
     url = f'https://t.me/{channel}/{post_no}?embed=1&mode=tme'
     r = requests.get(url)
-    soup = BeautifulSoup(r.text, 'html.parser')
+    soup = BeautifulSoup(r.text, 'lxml')
 
     for_img_vid = soup.find_all(
-        'div', {'class': 'tgme_widget_message_grouped_layer js-message_grouped_layer'})
-    
+        'a', {'class': 'tgme_widget_message_photo_wrap'})
+
+    vid_link = soup.find_all('video', {'class': 'tgme_widget_message_video'})
+
     content = soup.find(
         'div', class_='tgme_widget_message_text js-message_text')
 
@@ -26,38 +30,30 @@ def get_data():
     vid_list = []
     tag = []
 
-    for item in for_img_vid:
 
-        img = item.find(
-            'a', {'class': 'tgme_widget_message_photo_wrap'})['href']
-        vid = item.find(
-            'a', {'class': 'tgme_widget_message_video_player'})
+    if len(for_img_vid) > 0:
+        for item in for_img_vid:
+            img = item['href']
+            img_list.append(img)
+        img_list = ', '.join(img_list)
+    else:
+        img_list = 'No image'
 
-        img_list = img + '\n'
-        vid_list = vid['href'] + '\n' if vid else ''
 
-        if img == None:  # if these are none just skip them.
-            print('No image')
-            continue
-        if vid == None:
-            vid_list = 'No video'
-            print('No video')
-            continue
+    if len(vid_link) > 0:
+        for item in vid_link:
+            vid = item['href']
+            vid_list.append(vid)
+        vid_list = ', '.join(vid_list)
+    else:
+        vid_list = 'No video'
+
 
     title = content.get_text('\n')  # type: ignore
-    
-    ''''
-    this print the title unitl it finds a new line
-    '''
-    for i in range(len(title)):
-        if title[i] == '#':
-            for j in range(len(title[i:])):
-                if title[i+j] == '\n':
-                    tag = title[i:i+j] + ' '
-                    break
-            break
-    
-    
+
+    print()
+
+    tittle1 = content.get_text('\n').split('\n')[1]  # type: ignore
 
     if title.find('#') != -1:
         n = title.find('#')
@@ -76,7 +72,7 @@ def get_data():
 
     product = {
         'TAG': tag,
-        'title': title,  # type: ignore
+        'title': tittle1,
         'content': content.get_text('\n'),  # type: ignore
         'link': img_list,
         'vid': vid_list,
