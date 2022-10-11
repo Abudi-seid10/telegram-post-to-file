@@ -12,7 +12,6 @@ This output can be useful to make automated blog from PUBLIC telegram channel.
 This project is not done yet!!
 Feel free to fork and make some changes 😉
 
-
 ## How to use
 
 1. Clone the repo
