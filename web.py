@@ -1,16 +1,14 @@
 import requests  # type: ignore
 from bs4 import BeautifulSoup  # type: ignore
 import csv
-import cssutils # type: ignore
-
-# https://t.me/tikvahethiopia/74220
-
-post_no = "74176"
-channel = 'tikvahethiopia'
-productslist = []
+import cssutils  # type: ignore
+import sys
 
 
-def get_data():
+channel = sys.argv[1]
+post_no = sys.argv[2]
+ 
+def get_data(channel, post_no):
     url = f'https://t.me/{channel}/{post_no}?embed=1&mode=tme'
     r = requests.get(url)
     soup = BeautifulSoup(r.text, 'lxml')
@@ -25,10 +23,10 @@ def get_data():
 
     content = content if content else 'No content'
 
+    productslist = []
     img_list = []
     vid_list = []
     tag = []
-
 
     if len(for_img_vid) > 0:
         for item in for_img_vid:
@@ -41,7 +39,6 @@ def get_data():
     else:
         img_list = 'No image'
 
-
     if len(vid_link) > 0:
         for item in vid_link:
             vid = item['src']
@@ -50,12 +47,10 @@ def get_data():
     else:
         vid_list = 'No video'
 
-
     title = content.get_text('\n')  # type: ignore
 
     print()
 
-    
     if title.find('#') != -1:
         n = title.find('#')
         tag = title[n:]
@@ -77,10 +72,9 @@ def get_data():
         tittle1 = content.get_text('\n').split('\n')[0]
 
     posted_on = soup.find('time', class_='datetime')
-    posted_on = posted_on.get_text('\n').join(' \n') # type: ignore
+    posted_on = posted_on.get_text('\n').join(' \n')  # type: ignore
     views_no = soup.find('span', class_='tgme_widget_message_views')
     views_no = views_no.get_text('\n').join(' \n')  # type: ignore
-    
 
     product = {
         'TAG': tag,
@@ -98,7 +92,8 @@ def get_data():
 
 def output(productslist):
     with open('output.txt', 'a') as csvfile:
-        fieldnames = ['TAG', 'title', 'content', 'link', 'vid', 'posted_on', 'views']
+        fieldnames = ['TAG', 'title', 'content',
+                    'link', 'vid', 'posted_on', 'views']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(productslist)
@@ -118,7 +113,11 @@ def inplace_change(filename, old_string, new_string):
             s = s.replace(old_string, new_string)
             f.write(s)
 
+try:
+    soup1 = get_data(channel, post_no)
+    output(soup1)
+    inplace_change('output.txt', old_string, '\n \n')
+except KeyboardInterrupt:
+    print('No internet connection')
 
-soup1 = get_data()
-output(soup1)
-inplace_change('output.txt', old_string, '\n \n')
+
