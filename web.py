@@ -4,10 +4,12 @@ import csv
 import cssutils  # type: ignore
 import sys
 
+try:
+    channel = sys.argv[1]
+    post_no = sys.argv[2]
+except IndexError:
+    pass
 
-channel = sys.argv[1]
-post_no = sys.argv[2]
- 
 def get_data(channel, post_no):
     url = f'https://t.me/{channel}/{post_no}?embed=1&mode=tme'
     r = requests.get(url)
@@ -72,18 +74,18 @@ def get_data(channel, post_no):
         tittle1 = content.get_text('\n').split('\n')[0]
 
     posted_on = soup.find('time', class_='datetime')
-    posted_on = posted_on.get_text('\n').join(' \n')  # type: ignore
+    posted_on = posted_on.get_text('\n') # type: ignore
     views_no = soup.find('span', class_='tgme_widget_message_views')
-    views_no = views_no.get_text('\n').join(' \n')  # type: ignore
+    views_no = views_no.get_text('\n')  # type: ignore
 
     product = {
-        'TAG': tag,
-        'title': tittle1,
-        'content': content.get_text('\n'),  # type: ignore
-        'link': img_list,
-        'vid': vid_list,
-        'posted_on': posted_on,
-        'views': views_no,
+        'TAG': tag.join(" \n"),
+        'title': tittle1.join(" \n"),
+        'content': content.get_text('\n').join(" \n"),  # type: ignore
+        'link': img_list.join(" \n"),
+        'vid': vid_list.join(" \n"),
+        'posted_on': posted_on.join(" \n"),
+        'views': views_no.join(" \n"),
     }
 
     productslist.append(product)
@@ -91,16 +93,16 @@ def get_data(channel, post_no):
 
 
 def output(productslist):
-    with open('output.txt', 'a') as csvfile:
+    with open('output.csv', 'a') as csvfile:
         fieldnames = ['TAG', 'title', 'content',
-                    'link', 'vid', 'posted_on', 'views']
+                     'link', 'vid', 'posted_on', 'views']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(productslist)
         print('Saved to txt file')
 
 
-old_string = ['","', '",', ',"']
+old_string = ['""']
 
 
 def inplace_change(filename, old_string, new_string):
@@ -113,11 +115,12 @@ def inplace_change(filename, old_string, new_string):
             s = s.replace(old_string, new_string)
             f.write(s)
 
+
 try:
     soup1 = get_data(channel, post_no)
     output(soup1)
-    inplace_change('output.txt', old_string, '\n \n')
+    inplace_change('output.txt', old_string, '"')
 except KeyboardInterrupt:
     print('No internet connection')
-
-
+except NameError:
+    print("Sorry, please enter the channel name and post number")
