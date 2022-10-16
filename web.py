@@ -144,21 +144,3 @@ try:
     inplace_change('output.csv', old_string, '"')
 except KeyboardInterrupt:
     print('No internet connection')
-
-
-file = get_data('tikvahethiopia', 74270)
-links = file[0]['link']
-
-# print(len(links.split(',')))
-
-def img_vid_downloader(img_list, vid_list):
-    if img_list != 'No image':
-        for i in range(len(img_list)):
-            img = requests.get(img_list[i])
-            with open(f'img{i}.jpg', 'wb') as f:
-                f.write(img.content)
-    if vid_list != 'No video':
-        for i in range(len(vid_list)):
-            vid = requests.get(vid_list[i])
-            with open(f'vid{i}.mp4', 'wb') as f:
-                f.write(vid.content)
