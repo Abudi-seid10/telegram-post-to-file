@@ -1,21 +1,21 @@
+from os import mkdir
+import os
 import requests  # type: ignore
 from bs4 import BeautifulSoup  # type: ignore
 import csv
 import cssutils  # type: ignore
 import sys
 
-try:
-    channel = sys.argv[1]
-    post_no = sys.argv[2]
-except IndexError:
-    pass
+
+channel = sys.argv[1]
+post_no = sys.argv[2]
 
 def get_data(channel, post_no):
     url = f'https://t.me/{channel}/{post_no}?embed=1&mode=tme'
     r = requests.get(url)
     soup = BeautifulSoup(r.text, 'lxml')
 
-    for_img_vid = soup.find_all(
+    for_img = soup.find_all(
         'a', {'class': 'tgme_widget_message_photo_wrap'})
 
     vid_link = soup.find_all('video', {'class': 'tgme_widget_message_video'})
@@ -30,24 +30,45 @@ def get_data(channel, post_no):
     vid_list = []
     tag = []
 
-    if len(for_img_vid) > 0:
-        for item in for_img_vid:
+    mkdir('media') if not os.path.exists('media') else None
+    os.chdir('media')
+    os.mkdir(f'img_{post_no}') if not os.path.exists(f'img_{post_no}') else None
+    os.chdir(f'img_{post_no}')
+
+    if len(for_img) > 0:
+        for item in for_img:
             img = item['style']
             style = cssutils.parseStyle(img)
             imglist = style['background-image']
             imglist = imglist.replace('url(', '').replace(')', '')
+            for i in range(len(img_list)):
+                img = requests.get(img_list[i])
+                with open(f'img{post_no}_{i}.jpg', 'wb') as f:
+                    f.write(img.content)
             img_list.append(imglist)
         img_list = ', \n'.join(img_list)
     else:
         img_list = 'No image'
 
+    os.chdir('..')
+    os.mkdir(f'vid_{post_no}') if not os.path.exists(f'vid_{post_no}') else None
+   
+    os.chdir(f'vid_{post_no}')
+
+
     if len(vid_link) > 0:
         for item in vid_link:
             vid = item['src']
+            for i in range(len(vid_list)):
+                vid = requests.get(vid_list[i])
+                with open(f'vid{post_no}_{i}.mp4', 'wb') as f:
+                    f.write(vid.content)
             vid_list.append(vid)
         vid_list = ', \n'.join(vid_list)
     else:
         vid_list = 'No video'
+
+    os.chdir('..')
 
     title = content.get_text('\n')  # type: ignore
 
@@ -69,9 +90,9 @@ def get_data(channel, post_no):
             tag = 'No tag'
 
     if tag != 'No tag':
-        tittle1 = content.get_text('\n').split('\n')[1]
+        tittle1 = content.get_text('\n').split('\n')[1]  # type: ignore
     else:
-        tittle1 = content.get_text('\n').split('\n')[0]
+        tittle1 = content.get_text('\n').split('\n')[0]  # type: ignore
 
     posted_on = soup.find('time', class_='datetime')
     posted_on = posted_on.get_text('\n') # type: ignore
@@ -79,7 +100,7 @@ def get_data(channel, post_no):
     views_no = views_no.get_text('\n')  # type: ignore
 
     product = {
-        'TAG': tag.join(" \n"),
+        'TAG': tag.join(" \n"),  # type: ignore
         'title': tittle1.join(" \n"),
         'content': content.get_text('\n').join(" \n"),  # type: ignore
         'link': img_list.join(" \n"),
@@ -89,6 +110,7 @@ def get_data(channel, post_no):
     }
 
     productslist.append(product)
+    os.chdir('..')
     return productslist
 
 
@@ -107,20 +129,36 @@ old_string = ['""']
 
 def inplace_change(filename, old_string, new_string):
     with open(filename) as f:
-        s = f.read()
-
+        d = f.read()
+    
     # Safely write the changed content, if found in the file
     for old_string in old_string:
         with open(filename, 'w') as f:
-            s = s.replace(old_string, new_string)
-            f.write(s)
+            d = d.replace(old_string, new_string)
+            f.write(d)
 
 
 try:
     soup1 = get_data(channel, post_no)
     output(soup1)
-    inplace_change('output.txt', old_string, '"')
+    inplace_change('output.csv', old_string, '"')
 except KeyboardInterrupt:
     print('No internet connection')
-except NameError:
-    print("Sorry, please enter the channel name and post number")
+
+
+file = get_data('tikvahethiopia', 74270)
+links = file[0]['link']
+
+# print(len(links.split(',')))
+
+def img_vid_downloader(img_list, vid_list):
+    if img_list != 'No image':
+        for i in range(len(img_list)):
+            img = requests.get(img_list[i])
+            with open(f'img{i}.jpg', 'wb') as f:
+                f.write(img.content)
+    if vid_list != 'No video':
+        for i in range(len(vid_list)):
+            vid = requests.get(vid_list[i])
+            with open(f'vid{i}.mp4', 'wb') as f:
+                f.write(vid.content)
