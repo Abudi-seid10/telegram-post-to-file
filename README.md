@@ -4,7 +4,13 @@ This is a simple Telegram bot that saves all the messages it receives to a file.
 
 ### Usage
 
+
+# For linux
 python3 web.py <channel_name> <post_ID>
+
+# For windows
+
+py web.py <channel_name> <post_ID>
 
 This is a web scraping code that takes two input public channel and it's post Id number and returns output an array of Tag, Title, content, Images link, Videos link, Created date, and Views.
 This output can be useful to make automated blog from PUBLIC telegram channel.
